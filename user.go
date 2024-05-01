@@ -1,20 +1,21 @@
 package main
 
-import "math/rand"
-
+import (
+	"database/sql"
+)
 type User struct {
 	Name string `json:"name"`
 	Surname string `json:"surname"`
-	Amount int64 `json:"amount"`
+	Email string `json:"email"`
+	Balance sql.NullFloat64 `json:"balance"`
 	Id int64 `json:"id"`
 }
 
 
-func NewUser() *User {
+func NewUser(name, surname, email string) *User {
 	return &User{
-		Name: "name",
-		Surname: "surname",
-		Amount: int64(rand.Int()),
-		Id: int64(rand.Int()),
+		Name: name,
+		Surname: surname,
+		Email: email,
 	}
 }

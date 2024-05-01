@@ -35,10 +35,12 @@ func NewApi(storage Storage,address string) *Api {
 }
 
 func (api *Api) Run() {
+	api.storage.Init()
 	server := http.NewServeMux()
 
 	server.HandleFunc("/", MapHandlers(api.Some))
-	server.HandleFunc("/user", MapHandlers(api.CreateMe))
+	server.HandleFunc("/create", MapHandlers(api.CreateUser))
+	server.HandleFunc("/user", MapHandlers(api.GetUserById))
 
 	http.ListenAndServe(api.address, server)
 }
@@ -48,7 +50,22 @@ func (api *Api) Some(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (api *Api) CreateMe(res http.ResponseWriter, req *http.Request) error {
+func (api *Api) CreateUser(w http.ResponseWriter, req *http.Request) error {
+	if req.Method != http.MethodPost {
+		return errors.New("only POST")
+	}
+	user := new(User)
+	json.NewDecoder(req.Body).Decode(user)
+
+	user, err := api.storage.CreateUser(user.Name, user.Surname, user.Email)
+	if err != nil {
+		panic(err)
+	}
+	json.NewEncoder(w).Encode(user)
+	return nil
+}
+
+func (api *Api) GetUserById(res http.ResponseWriter, req *http.Request) error {
 	// json.NewEncoder(res).Encode(NewUser())
 	return errors.New("poshel v hui")
 }

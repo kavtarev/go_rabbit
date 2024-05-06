@@ -44,7 +44,7 @@ const secret = "some_secret"
 func createJWT(id string) (string, error){
 	claims := jwt.MapClaims{
 		"sub":  id,
-		"exp":  time.Now().Add(time.Second * 10).Unix(),
+		"exp":  time.Now().Add(time.Second * 10000).Unix(),
 }
 	
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

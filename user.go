@@ -7,8 +7,8 @@ type User struct {
 	Name string `json:"name"`
 	Surname string `json:"surname"`
 	Email string `json:"email"`
-	Balance sql.NullFloat64 `json:"balance"`
-	Id int64 `json:"id"`
+	Password sql.NullString `json:"password"`
+	Id string `json:"id"`
 }
 
 

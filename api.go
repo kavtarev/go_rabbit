@@ -53,7 +53,7 @@ func (api *Api) Run() {
 	server := http.NewServeMux()
 
 	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some)))
-	server.HandleFunc("/create", MapHandlers(api.CreateUser))
+	server.HandleFunc("/register", MapHandlers(api.Register))
 	server.HandleFunc("/user", MapHandlers(api.GetUserById))
 	server.HandleFunc("/token", MapHandlers(api.CreateToken))
 
@@ -75,18 +75,38 @@ func (api *Api) CreateToken(w http.ResponseWriter, req *http.Request) error {
 	return nil;
 }
 
-func (api *Api) CreateUser(w http.ResponseWriter, req *http.Request) error {
+func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != http.MethodPost {
 		return errors.New("only POST")
 	}
-	user := new(User)
-	json.NewDecoder(req.Body).Decode(user)
 
-	user, err := api.storage.CreateUser(user.Name, user.Surname, user.Email)
+	dto := new(RegisterDto)
+
+	d := json.NewDecoder(req.Body)
+	d.DisallowUnknownFields()
+
+	err := d.Decode(dto)
 	if err != nil {
-		panic(err)
+		responseAsJson(w, http.StatusBadRequest, err.Error())
 	}
-	json.NewEncoder(w).Encode(user)
+	if dto.Email == "" || dto.Name == "" || dto.Surname == "" {
+		responseAsJson(w, http.StatusBadRequest, errors.New(""))
+	}
+
+	res, err := api.storage.CreateUser(*dto)
+	if err != nil {
+		responseAsJson(w, http.StatusBadRequest, errors.New(""))
+	}
+
+	responseAsJson(w, http.StatusCreated, RegisterResponse{Id: res.Id, Email: res.Email})
+	return nil
+}
+
+func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
+	return nil
+}
+
+func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 

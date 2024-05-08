@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-
 	_ "github.com/lib/pq"
 )
 
 type Storage interface {
 	GetSome() string
-	CreateUser(name, surname, email string) (*User, error)
+	CreateUser(dto RegisterDto) (*User, error)
 	DeleteUser() error
 	FindUser() *User
 	UpdateUser() error
@@ -22,17 +21,24 @@ type PostgresStorage struct {
 }
 
 func (s *PostgresStorage) Init() {
-	query := `
+	query := `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`;
+
+	_, err := s.db.Exec(query)
+	if err != nil {
+		panic(err)
+	}
+
+	query = `
 		create table if not exists users (
-			id int generated always as identity
+			id uuid not null default uuid_generate_v4()
 			, name text
 			, surname text
 			, email text
-			, balance float
+			, password text
 		)
 	`;
 
-	_, err := s.db.Exec(query)
+	_, err = s.db.Exec(query)
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +63,7 @@ func NewPostgresStore() *PostgresStorage {
 func (s *PostgresStorage) GetSome() string {
 	return "get-some"
 }
-func (s *PostgresStorage) CreateUser(name, surname, email string) (*User, error) {
+func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
 	data, err := s.db.Query(`
 		insert into users (
 			name
@@ -65,8 +71,8 @@ func (s *PostgresStorage) CreateUser(name, surname, email string) (*User, error)
 			, email
 		) values (
 			$1,$2,$3
-		) returning name, surname, email, id, balance
-	`,name,surname,email)
+		) returning name, surname, email, id, password
+	`,dto.Name,dto.Surname,dto.Email)
 	if err != nil {
 		fmt.Println("before scan", err)
 	}
@@ -79,7 +85,7 @@ func (s *PostgresStorage) CreateUser(name, surname, email string) (*User, error)
 			&user.Surname,
 			&user.Email,
 			&user.Id,
-			&user.Balance,
+			&user.Password,
 		)
 		if err != nil {
 			fmt.Println("in scan", err)

@@ -12,7 +12,7 @@ type Storage interface {
 	GetSome() string
 	CreateUser(dto RegisterDto) (*User, error)
 	DeleteUser() error
-	FindUser() *User
+	FindUserById(id string) (*User, error)
 	FindByEmail(email string) (*User, error)
 	UpdateUser() error
 	Init()
@@ -135,8 +135,29 @@ func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
 func (s *PostgresStorage) DeleteUser() error {
 	return nil
 }
-func (s *PostgresStorage) FindUser() *User {
-	return NewUser("","","")
+func (s *PostgresStorage) FindUserById(id string) (*User, error) {
+	user := User{}
+
+	res, err := s.db.Query(`select id, name, surname, email, password from users where id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Close()
+
+	for res.Next() {
+		err := res.Scan(
+			&user.Id,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Password,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &user, nil
 }
 func (s *PostgresStorage) UpdateUser() error {
 	return nil

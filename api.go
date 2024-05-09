@@ -19,25 +19,6 @@ func NewApi(storage Storage,address string) *Api {
 	}
 }
 
-func JWTAccess(fn http.HandlerFunc) http.HandlerFunc{
-	return func (w http.ResponseWriter, r *http.Request) {
-		fmt.Println("in jwt")
-		token := r.Header.Get("jwt_token")
-		t, err := validateJWT(token)
-		fmt.Println("Header", t.Header)
-		fmt.Println("Claims", t.Claims)
-		fmt.Println("Signature", t.Signature)
-		fmt.Println("Valid", t.Valid)
-		if err != nil {
-			responseAsJson(w, http.StatusBadRequest, "goooooooovna")
-			return
-		}
-
-		fn(w,r)
-	}
-}
-
-
 func MapHandlers (f func(res http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
@@ -51,7 +32,7 @@ func (api *Api) Run() {
 	api.storage.Init()
 	server := http.NewServeMux()
 
-	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some)))
+	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some), api.storage))
 
 	server.HandleFunc("/register", MapHandlers(api.Register))
 	server.HandleFunc("/login", MapHandlers(api.Login))
@@ -123,12 +104,12 @@ func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	w.Header().Add("api-cookie", fmt.Sprintf("token=%v;Max-Age=90;HttpOnly", token))
+	w.Header().Add("x-api-header", fmt.Sprintf("token=%v;Max-Age=90;HttpOnly", token))
 	return responseAsJson(w, http.StatusOK, LoginResponse{ Token: token })
 }
 
 func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {
-	w.Header().Add("api-cookie", "token=;Max-Age=-;HttpOnly")
+	w.Header().Add("x-api-header", "token=;Max-Age=-;HttpOnly")
 	return nil
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	_ "github.com/lib/pq"
@@ -63,7 +64,42 @@ func NewPostgresStore() *PostgresStorage {
 func (s *PostgresStorage) GetSome() string {
 	return "get-some"
 }
+
+func (s *PostgresStorage) FindByEmail(email string) (*User, error) {
+	query, err := s.db.Query(`select name, surname, email, id, password from users where email = $1`, email)
+	if err != nil {
+		fmt.Println("find by email error")
+		return nil, err
+	}
+	defer query.Close()
+
+	var user User
+	for query.Next() {
+		err := query.Scan(
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Id,
+			&user.Password,
+		)
+		if err != nil {
+			fmt.Println("in scan", err)
+		}
+	}
+	return &user, nil
+}
+
 func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
+	existingUser, err := s.FindByEmail(dto.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO validate correctly
+	if existingUser.Email != "" {
+		return nil, errors.New("email already taken")
+	}
+
 	data, err := s.db.Query(`
 		insert into users (
 			name

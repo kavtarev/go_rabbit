@@ -95,7 +95,7 @@ func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 
 	res, err := api.storage.CreateUser(*dto)
 	if err != nil {
-		responseAsJson(w, http.StatusBadRequest, errors.New(""))
+		return err
 	}
 
 	responseAsJson(w, http.StatusCreated, RegisterResponse{Id: res.Id, Email: res.Email})

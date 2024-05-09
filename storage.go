@@ -162,23 +162,3 @@ func (s *PostgresStorage) FindUserById(id string) (*User, error) {
 func (s *PostgresStorage) UpdateUser() error {
 	return nil
 }
-
-// type MockStorage struct {
-
-// }
-
-// func (s *MockStorage) GetSome() string {
-// 	return "get-some"
-// }
-// func (s *MockStorage) CreateUser() *User {
-// 	return NewUser()
-// }
-// func (s *MockStorage) DeleteUser() error {
-// 	return nil
-// }
-// func (s *MockStorage) FindUser() *User {
-// 	return NewUser()
-// }
-// func (s *MockStorage) UpdateUser() error {
-// 	return nil
-// }

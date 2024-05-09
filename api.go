@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"context"
 )
 
 type Api struct {
@@ -33,6 +34,7 @@ func (api *Api) Run() {
 	server := http.NewServeMux()
 
 	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some), api.storage))
+	server.HandleFunc("/ctx", MapHandlers(api.Some))
 
 	server.HandleFunc("/register", MapHandlers(api.Register))
 	server.HandleFunc("/login", MapHandlers(api.Login))
@@ -44,8 +46,19 @@ func (api *Api) Run() {
 }
 
 func (api *Api) Some(w http.ResponseWriter, r *http.Request) error {
-	responseAsJson(w, http.StatusOK, "it's all good, man")
+	routes := r.Context().Value("routes")
+	fmt.Println("in some", routes)
+
+	ctx := context.WithValue(r.Context(), "routes", []string{"/", "/some"})
+	WithContext(w, r.WithContext(ctx))
+	// responseAsJson(w, http.StatusOK, "it's all good, man")
 	return nil
+}
+
+func WithContext(w http.ResponseWriter, r *http.Request) {
+	res := r.Context().Value("routes")
+	fmt.Println("new context", res)
+	w.Write([]byte("with context"))
 }
 
 

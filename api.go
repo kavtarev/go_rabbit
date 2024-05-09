@@ -58,7 +58,6 @@ func (api *Api) Run() {
 	server.HandleFunc("/logout", MapHandlers(api.Logout))
 
 	server.HandleFunc("/user", MapHandlers(api.GetUserById))
-	server.HandleFunc("/token", MapHandlers(api.CreateToken))
 
 	http.ListenAndServe(api.address, server)
 }
@@ -68,15 +67,6 @@ func (api *Api) Some(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (api *Api) CreateToken(w http.ResponseWriter, req *http.Request) error {
-	token, err := createJWT("some")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(token)
-
-	return nil;
-}
 
 func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != http.MethodPost {
@@ -128,15 +118,17 @@ func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
 		return errors.New("password is incorrect")
 	}
 
-	token, err := createJWT(user.Id)
+	token, err := createJWT(user.Id, 10000)
 	if err != nil {
 		return err
 	}
 
+	w.Header().Add("api-cookie", fmt.Sprintf("token=%v;Max-Age=90;HttpOnly", token))
 	return responseAsJson(w, http.StatusOK, LoginResponse{ Token: token })
 }
 
 func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {
+	w.Header().Add("api-cookie", "token=;Max-Age=-;HttpOnly")
 	return nil
 }
 

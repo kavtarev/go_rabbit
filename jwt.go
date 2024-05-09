@@ -8,10 +8,10 @@ import (
 
 const secret = "some_secret"
 
-func createJWT(id string) (string, error){
+func createJWT(id string, ttl int) (string, error){
 	claims := jwt.MapClaims{
 		"sub":  id,
-		"exp":  time.Now().Add(time.Second * 10000).Unix(),
+		"exp":  time.Now().Add(time.Second * time.Duration(ttl)).Unix(),
 	}
 	
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

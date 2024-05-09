@@ -13,6 +13,7 @@ type Storage interface {
 	CreateUser(dto RegisterDto) (*User, error)
 	DeleteUser() error
 	FindUser() *User
+	FindByEmail(email string) (*User, error)
 	UpdateUser() error
 	Init()
 }

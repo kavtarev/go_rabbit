@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-const secret = "some_secret"
 type Api struct {
 	storage Storage
 	address string
@@ -53,7 +52,11 @@ func (api *Api) Run() {
 	server := http.NewServeMux()
 
 	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some)))
+
 	server.HandleFunc("/register", MapHandlers(api.Register))
+	server.HandleFunc("/login", MapHandlers(api.Login))
+	server.HandleFunc("/logout", MapHandlers(api.Logout))
+
 	server.HandleFunc("/user", MapHandlers(api.GetUserById))
 	server.HandleFunc("/token", MapHandlers(api.CreateToken))
 
@@ -102,7 +105,35 @@ func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 }
 
 func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
-	return nil
+	if req.Method != http.MethodPost {
+		return errors.New("only POST")
+	}
+
+	dto := new(LoginDto)
+
+	d := json.NewDecoder(req.Body)
+	d.DisallowUnknownFields()
+
+	err := d.Decode(dto)
+	if err != nil {
+		return err
+	}
+
+	user, err := api.storage.FindByEmail(dto.Email)
+	if err != nil {
+		return err
+	}
+
+	if user.Password.String != dto.Password {
+		return errors.New("password is incorrect")
+	}
+
+	token, err := createJWT(user.Id)
+	if err != nil {
+		return err
+	}
+
+	return responseAsJson(w, http.StatusOK, LoginResponse{ Token: token })
 }
 
 func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {

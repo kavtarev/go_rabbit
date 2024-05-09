@@ -105,12 +105,13 @@ func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
 			name
 			, surname
 			, email
+			, password
 		) values (
-			$1,$2,$3
+			$1,$2,$3,$4
 		) returning name, surname, email, id, password
-	`,dto.Name,dto.Surname,dto.Email)
+	`,dto.Name,dto.Surname,dto.Email,dto.Password)
 	if err != nil {
-		fmt.Println("before scan", err)
+		return nil, err
 	}
 	defer data.Close()
 

@@ -87,10 +87,10 @@ func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 
 	err := d.Decode(dto)
 	if err != nil {
-		responseAsJson(w, http.StatusBadRequest, err.Error())
+		return err
 	}
-	if dto.Email == "" || dto.Name == "" || dto.Surname == "" {
-		responseAsJson(w, http.StatusBadRequest, errors.New(""))
+	if dto.Email == "" || dto.Name == "" || dto.Surname == "" || dto.Password == "" {
+		return errors.New("invalid registration data")
 	}
 
 	res, err := api.storage.CreateUser(*dto)
@@ -98,8 +98,7 @@ func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	responseAsJson(w, http.StatusCreated, RegisterResponse{Id: res.Id, Email: res.Email})
-	return nil
+	return responseAsJson(w, http.StatusCreated, RegisterResponse{Id: res.Id, Email: res.Email})
 }
 
 func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {

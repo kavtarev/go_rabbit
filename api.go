@@ -1,11 +1,10 @@
 package main
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"context"
 )
 
 type Api struct {
@@ -28,7 +27,6 @@ func MapHandlers (f func(res http.ResponseWriter, req *http.Request) error) http
 	}
 }
 
-
 func (api *Api) Run() {
 	api.storage.Init()
 	server := http.NewServeMux()
@@ -40,27 +38,15 @@ func (api *Api) Run() {
 	server.HandleFunc("/login", MapHandlers(api.Login))
 	server.HandleFunc("/logout", MapHandlers(api.Logout))
 
-	server.HandleFunc("/user", MapHandlers(api.GetUserById))
-
 	http.ListenAndServe(api.address, server)
 }
 
 func (api *Api) Some(w http.ResponseWriter, r *http.Request) error {
-	routes := r.Context().Value("routes")
-	fmt.Println("in some", routes)
+	user := r.Context().Value(key).(*User)
 
-	ctx := context.WithValue(r.Context(), "routes", []string{"/", "/some"})
-	WithContext(w, r.WithContext(ctx))
-	// responseAsJson(w, http.StatusOK, "it's all good, man")
+	responseAsJson(w, http.StatusOK, user)
 	return nil
 }
-
-func WithContext(w http.ResponseWriter, r *http.Request) {
-	res := r.Context().Value("routes")
-	fmt.Println("new context", res)
-	w.Write([]byte("with context"))
-}
-
 
 func (api *Api) Register(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != http.MethodPost {
@@ -124,9 +110,4 @@ func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
 func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {
 	w.Header().Add("x-api-header", "token=;Max-Age=-;HttpOnly")
 	return nil
-}
-
-func (api *Api) GetUserById(res http.ResponseWriter, req *http.Request) error {
-	// json.NewEncoder(res).Encode(NewUser())
-	return errors.New("poshel v hui")
 }

@@ -9,13 +9,15 @@ import (
 )
 
 type Storage interface {
+	Init()
 	GetSome() string
+
 	CreateUser(dto RegisterDto) (*User, error)
-	DeleteUser() error
+
 	FindUserById(id string) (*User, error)
 	FindByEmail(email string) (*User, error)
-	UpdateUser() error
-	Init()
+
+	ListUsers(page, limit int, orderBy, q string) ([]*User, error)
 }
 
 type PostgresStorage struct {
@@ -132,9 +134,7 @@ func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
 
 	return user, nil
 }
-func (s *PostgresStorage) DeleteUser() error {
-	return nil
-}
+
 func (s *PostgresStorage) FindUserById(id string) (*User, error) {
 	user := User{}
 
@@ -159,6 +159,40 @@ func (s *PostgresStorage) FindUserById(id string) (*User, error) {
 
 	return &user, nil
 }
-func (s *PostgresStorage) UpdateUser() error {
-	return nil
+
+func (s *PostgresStorage) ListUsers(page, limit int, q, orderBy string) ([]*User, error) {
+	args := []any{1}
+
+	res, err := s.db.Query(`
+		select id, name, surname, email
+		from users
+		limit $1
+	`, args...)
+
+	if err != nil {
+		return nil, err
+	}
+	defer res.Close()
+
+	users := make([]*User, limit)
+
+	for res.Next() {
+		user := new(User)
+		err := res.Scan(
+			&user.Id,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+		)
+		
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	fmt.Println(users)
+
+	return users, nil
 }

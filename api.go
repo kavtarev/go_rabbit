@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type Api struct {
@@ -32,11 +33,14 @@ func (api *Api) Run() {
 	server := http.NewServeMux()
 
 	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some), api.storage))
-	server.HandleFunc("/ctx", MapHandlers(api.Some))
 
 	server.HandleFunc("/register", MapHandlers(api.Register))
 	server.HandleFunc("/login", MapHandlers(api.Login))
 	server.HandleFunc("/logout", MapHandlers(api.Logout))
+
+	server.HandleFunc("/me", JWTAccess(MapHandlers(api.Me), api.storage))
+	server.HandleFunc("/user", JWTAccess(MapHandlers(api.FindUserById), api.storage))
+	server.HandleFunc("/users", JWTAccess(MapHandlers(api.ListUsers), api.storage))
 
 	http.ListenAndServe(api.address, server)
 }
@@ -109,5 +113,89 @@ func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
 
 func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {
 	w.Header().Add("x-api-header", "token=;Max-Age=-;HttpOnly")
+	return nil
+}
+
+func (api *Api) Me(w http.ResponseWriter, req *http.Request) error {
+	if req.Method != http.MethodGet {
+		return errors.New("only GET method allowed")
+	}
+
+	user := req.Context().Value(key).(*User)
+
+	responseAsJson(w, http.StatusOK, MeResponse{Id: user.Id, Name: user.Name, Email: user.Email, Surname: user.Surname})
+	return nil
+}
+
+func (api *Api) FindUserById(w http.ResponseWriter, req *http.Request) error {
+	if req.Method != http.MethodGet {
+		return errors.New("only GET method allowed")
+	}
+
+	fmt.Println(req.URL.Query())
+	id := req.URL.Query()["id"][0]
+	if id == "" {
+		return errors.New("no id provided")
+	}
+
+	user, err := api.storage.FindUserById(id)
+	if err != nil {
+		return err
+	}
+
+	// TODO validate correctly
+	if user.Id == "" {
+		return errors.New("not found")
+	}
+
+	responseAsJson(w, http.StatusOK, UserResponse{Id: user.Id, Name: user.Name, Email: user.Email, Surname: user.Surname})
+
+	return nil
+}
+
+func (api * Api) ListUsers(w http.ResponseWriter, req *http.Request) error{
+	if req.Method != http.MethodGet {
+		return errors.New("only GET method allowed")
+	}
+
+	pageString := req.URL.Query()["page"]
+	if pageString == nil {
+		pageString = []string{"0"}
+	}
+	page, err := strconv.Atoi(pageString[0])
+	if err != nil {
+			return errors.New("page must be int")
+	}
+
+	limitString := req.URL.Query()["limit"]
+	if limitString == nil {
+		limitString = []string{"0"}
+	}
+	limit, err := strconv.Atoi(limitString[0])
+	if err != nil {
+			return errors.New("limit must be int")
+	}
+
+	orderBy := req.URL.Query()["orderBy"]
+	if orderBy == nil {
+		orderBy = []string{""}
+	}
+	q := req.URL.Query()["q"]
+	if q == nil {
+		q = []string{""}
+	}
+
+	users, err := api.storage.ListUsers(page,limit,orderBy[0],q[0])
+	if err != nil {
+		return err
+	}
+
+	result := make([]UserResponse, len(users))
+	for i :=0; i < len(users); i++ {
+		result[i] = UserResponse{Id: users[i].Id, Name: users[i].Name, Email: users[i].Email, Surname: users[i].Surname}
+	}
+
+	responseAsJson(w, http.StatusOK, result)
+
 	return nil
 }

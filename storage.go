@@ -166,14 +166,14 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 
 	offsetString := ""
 	if q.Page != 0 {
-		offsetString = "offset $2"
 		args = append(args, q.Page * q.Limit)
+		offsetString = fmt.Sprintf("offset $%d", len(args))
 	}
 
 	qString := ""
 	if q.Q != "" {
-		qString = "where name iLike $3 or email iLike $3"
-		args = append(args, "'%" + q.Q + "%'")
+		args = append(args, q.Q)
+		qString = fmt.Sprintf("where name iLike '%%' || $%d || '%%' or email iLike '%%' || $%d || '%%'" ,len(args),len(args))
 	}
 
 	query := fmt.Sprintf(
@@ -187,7 +187,6 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 	)
 
 	res, err := s.db.Query(query, args...)
-	fmt.Println(query)
 
 	if err != nil {
 		return nil, err
@@ -214,3 +213,4 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 
 	return users, nil
 }
+

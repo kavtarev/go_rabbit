@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
 	_ "github.com/lib/pq"
 )
 
@@ -17,7 +18,7 @@ type Storage interface {
 	FindUserById(id string) (*User, error)
 	FindByEmail(email string) (*User, error)
 
-	ListUsers(page, limit int, orderBy, q string) ([]*User, error)
+	ListUsers(q QueryParamsParser) ([]*User, error)
 }
 
 type PostgresStorage struct {
@@ -160,21 +161,40 @@ func (s *PostgresStorage) FindUserById(id string) (*User, error) {
 	return &user, nil
 }
 
-func (s *PostgresStorage) ListUsers(page, limit int, q, orderBy string) ([]*User, error) {
-	args := []any{1}
+func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
+	args := []any{q.Limit}
 
-	res, err := s.db.Query(`
-		select id, name, surname, email
-		from users
-		limit $1
-	`, args...)
+	offsetString := ""
+	if q.Page != 0 {
+		offsetString = "offset $2"
+		args = append(args, q.Page * q.Limit)
+	}
+
+	qString := ""
+	if q.Q != "" {
+		qString = "where name iLike $3 or email iLike $3"
+		args = append(args, "'%" + q.Q + "%'")
+	}
+
+	query := fmt.Sprintf(
+		`
+			select id, name, surname, email
+			from users
+			%v
+			%v
+			limit $1
+		`, qString,  offsetString,
+	)
+
+	res, err := s.db.Query(query, args...)
+	fmt.Println(query)
 
 	if err != nil {
 		return nil, err
 	}
 	defer res.Close()
 
-	users := make([]*User, limit)
+	users := make([]*User, 0)
 
 	for res.Next() {
 		user := new(User)
@@ -191,8 +211,6 @@ func (s *PostgresStorage) ListUsers(page, limit int, q, orderBy string) ([]*User
 
 		users = append(users, user)
 	}
-
-	fmt.Println(users)
 
 	return users, nil
 }

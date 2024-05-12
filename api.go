@@ -131,7 +131,6 @@ func (api *Api) FindUserById(w http.ResponseWriter, req *http.Request) error {
 		return errors.New("only GET method allowed")
 	}
 
-	fmt.Println(req.URL.Query())
 	id := req.URL.Query()["id"][0]
 	if id == "" {
 		return errors.New("no id provided")

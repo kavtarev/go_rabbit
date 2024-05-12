@@ -72,7 +72,6 @@ func (s *PostgresStorage) GetSome() string {
 func (s *PostgresStorage) FindByEmail(email string) (*User, error) {
 	query, err := s.db.Query(`select name, surname, email, id, password from users where email = $1`, email)
 	if err != nil {
-		fmt.Println("find by email error")
 		return nil, err
 	}
 	defer query.Close()
@@ -87,7 +86,7 @@ func (s *PostgresStorage) FindByEmail(email string) (*User, error) {
 			&user.Password,
 		)
 		if err != nil {
-			fmt.Println("in scan", err)
+			return nil, err
 		}
 	}
 	return &user, nil
@@ -129,7 +128,7 @@ func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
 			&user.Password,
 		)
 		if err != nil {
-			fmt.Println("in scan", err)
+			return nil, err
 		}
 	}
 

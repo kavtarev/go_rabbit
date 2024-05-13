@@ -7,7 +7,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func main() {
+func main3() {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
 	if err != nil {
 		fmt.Println(1111111, err)

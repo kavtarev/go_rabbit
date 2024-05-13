@@ -3,18 +3,25 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const secret = "some_secret"
+
 type UserMetaKey string
 var key UserMetaKey = "user_meta"
 
 
 func createJWT(id string, ttl int) (string, error){
+	secret := os.Getenv("SECRET_KEY")
+	if secret == "" {
+		log.Fatal("no secret key found")
+	}
 	claims := jwt.MapClaims{
 		"sub":  id,
 		"exp":  time.Now().Add(time.Second * time.Duration(ttl)).Unix(),
@@ -26,6 +33,10 @@ func createJWT(id string, ttl int) (string, error){
 
 
 func validateJWT(tokenString string) (*jwt.Token, error) {
+	secret := os.Getenv("SECRET_KEY")
+	if secret == "" {
+		log.Fatal("no secret key found")
+	}
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

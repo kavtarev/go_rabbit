@@ -1,7 +1,16 @@
 package main
 
-func main2() {
+import (
+	"log"
+	"os"
+)
+
+func main() {
 	storage := NewPostgresStore()
-	api := NewApi(storage, ":3000")
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("no port env set")
+	}
+	api := NewApi(storage, ":" + port)
 	api.Run()
 }

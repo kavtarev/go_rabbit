@@ -10,7 +10,6 @@ import (
 )
 
 type Storage interface {
-	Init()
 	GetSome() string
 
 	CreateUser(dto RegisterDto) (*User, error)
@@ -23,30 +22,6 @@ type Storage interface {
 
 type PostgresStorage struct {
 	db *sql.DB
-}
-
-func (s *PostgresStorage) Init() {
-	query := `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`;
-
-	_, err := s.db.Exec(query)
-	if err != nil {
-		panic(err)
-	}
-
-	query = `
-		create table if not exists users (
-			id uuid not null default uuid_generate_v4()
-			, name text
-			, surname text
-			, email text
-			, password text
-		)
-	`;
-
-	_, err = s.db.Exec(query)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func NewPostgresStore() *PostgresStorage {

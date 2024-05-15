@@ -28,7 +28,6 @@ func MapHandlers (f func(res http.ResponseWriter, req *http.Request) error) http
 }
 
 func (api *Api) Run() {
-	api.storage.Init()
 	server := http.NewServeMux()
 
 	server.HandleFunc("/", JWTAccess(MapHandlers(api.Some), api.storage))

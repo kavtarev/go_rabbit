@@ -1,6 +1,6 @@
 -- +goose up
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+create extension if not exists "uuid-ossp";
 
 create table if not exists users2 (
   id uuid not null default uuid_generate_v4()

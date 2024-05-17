@@ -2,7 +2,7 @@
 
 create extension if not exists "uuid-ossp";
 
-create table if not exists users2 (
+create table if not exists users (
   id uuid not null default uuid_generate_v4()
   , name text
   , surname text
@@ -12,4 +12,4 @@ create table if not exists users2 (
 
 -- +goose down
 
-drop table users2;
+drop table users;

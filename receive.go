@@ -18,29 +18,29 @@ func main3() {
 		fmt.Println(222222, err)
 	}
 
-	err = channel.ExchangeDeclare("rrr-exchange", "fanout", true, false, false,false, nil)
+	err = channel.ExchangeDeclare("rrr-exchange", "fanout", true, false, false, false, nil)
 	if err != nil {
 		fmt.Println(222.22, err)
 	}
 
-	queue, err := channel.QueueDeclare("", false, true,true,false,nil)
+	queue, err := channel.QueueDeclare("", false, true, true, false, nil)
 	if err != nil {
 		fmt.Println(333333, err)
 	}
 
-	err = channel.QueueBind(queue.Name, "", "rrr-exchange", false,nil)
+	err = channel.QueueBind(queue.Name, "", "rrr-exchange", false, nil)
 	if err != nil {
 		fmt.Println(3333.3555, err)
 	}
 
 	messages, err := channel.Consume(
 		queue.Name, // queue
-		"",     // consumer
-		false,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		"",         // consumer
+		false,      // auto-ack
+		false,      // exclusive
+		false,      // no-local
+		false,      // no-wait
+		nil,        // args
 	)
 	if err != nil {
 		fmt.Println(44444, err)

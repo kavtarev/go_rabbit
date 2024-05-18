@@ -12,14 +12,14 @@ type Api struct {
 	address string
 }
 
-func NewApi(storage Storage,address string) *Api {
+func NewApi(storage Storage, address string) *Api {
 	return &Api{
 		storage: storage,
 		address: address,
 	}
 }
 
-func MapHandlers (f func(res http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
+func MapHandlers(f func(res http.ResponseWriter, req *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
 			responseAsJson(w, http.StatusBadRequest, err.Error())
@@ -106,7 +106,7 @@ func (api *Api) Login(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	w.Header().Add("x-api-header", fmt.Sprintf("token=%v;Max-Age=90;HttpOnly", token))
-	return responseAsJson(w, http.StatusOK, LoginResponse{ Token: token })
+	return responseAsJson(w, http.StatusOK, LoginResponse{Token: token})
 }
 
 func (api *Api) Logout(w http.ResponseWriter, req *http.Request) error {
@@ -150,7 +150,7 @@ func (api *Api) FindUserById(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func (api * Api) ListUsers(w http.ResponseWriter, req *http.Request) error{
+func (api *Api) ListUsers(w http.ResponseWriter, req *http.Request) error {
 	if req.Method != http.MethodGet {
 		return errors.New("only GET method allowed")
 	}

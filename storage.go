@@ -87,7 +87,7 @@ func (s *PostgresStorage) CreateUser(dto RegisterDto) (*User, error) {
 		) values (
 			$1,$2,$3,$4
 		) returning name, surname, email, id, password
-	`,dto.Name,dto.Surname,dto.Email,dto.Password)
+	`, dto.Name, dto.Surname, dto.Email, dto.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -140,14 +140,14 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 
 	offsetString := ""
 	if q.Page != 0 {
-		args = append(args, q.Page * q.Limit)
+		args = append(args, q.Page*q.Limit)
 		offsetString = fmt.Sprintf("offset $%d", len(args))
 	}
 
 	qString := ""
 	if q.Q != "" {
 		args = append(args, q.Q)
-		qString = fmt.Sprintf("where name iLike '%%' || $%d || '%%' or email iLike '%%' || $%d || '%%'" ,len(args),len(args))
+		qString = fmt.Sprintf("where name iLike '%%' || $%d || '%%' or email iLike '%%' || $%d || '%%'", len(args), len(args))
 	}
 
 	query := fmt.Sprintf(
@@ -157,7 +157,7 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 			%v
 			%v
 			limit $1
-		`, qString,  offsetString,
+		`, qString, offsetString,
 	)
 
 	res, err := s.db.Query(query, args...)
@@ -177,7 +177,7 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 			&user.Surname,
 			&user.Email,
 		)
-		
+
 		if err != nil {
 			return nil, err
 		}
@@ -187,4 +187,3 @@ func (s *PostgresStorage) ListUsers(q QueryParamsParser) ([]*User, error) {
 
 	return users, nil
 }
-

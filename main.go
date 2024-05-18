@@ -11,6 +11,6 @@ func main() {
 	if port == "" {
 		log.Fatal("no port env set")
 	}
-	api := NewApi(storage, ":" + port)
+	api := NewApi(storage, ":"+port)
 	api.Run()
 }

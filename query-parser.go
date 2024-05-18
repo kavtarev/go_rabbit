@@ -8,18 +8,18 @@ import (
 )
 
 const (
-	defaultPage = 0
+	defaultPage  = 0
 	defaultLimit = 20
 	defaultOrder = "desc"
 )
 
 type QueryParamsParser struct {
 	values url.Values
-	Page int
-	Limit int
+	Page   int
+	Limit  int
 	Errors []error
-	Q string
-	Order string
+	Q      string
+	Order  string
 }
 
 func (q *QueryParamsParser) CheckCorrectness() bool {
@@ -40,8 +40,8 @@ func (q *QueryParamsParser) parsePage() {
 
 	page, err := strconv.Atoi(pageString[0])
 	if err != nil {
-			q.Errors = append(q.Errors, errors.New("page must be number"))
-			return
+		q.Errors = append(q.Errors, errors.New("page must be number"))
+		return
 	}
 	if page < 0 {
 		q.Errors = append(q.Errors, errors.New("page must be positive number"))
@@ -59,12 +59,12 @@ func (q *QueryParamsParser) parseLimit() {
 
 	limit, err := strconv.Atoi(limitString[0])
 	if err != nil {
-			q.Errors = append(q.Errors, errors.New("limit must be number"))
-			return
+		q.Errors = append(q.Errors, errors.New("limit must be number"))
+		return
 	}
 	if limit < 0 {
-			q.Errors = append(q.Errors, errors.New("limit must be positive number"))
-			return
+		q.Errors = append(q.Errors, errors.New("limit must be positive number"))
+		return
 	}
 	q.Limit = limit
 }
@@ -93,5 +93,3 @@ func (q *QueryParamsParser) parseOrder() {
 
 	q.Order = "asc"
 }
-
-

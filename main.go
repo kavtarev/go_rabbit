@@ -7,10 +7,11 @@ import (
 
 func main() {
 	storage := NewPostgresStore()
+	channel := NewChannel()
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("no port env set")
 	}
-	api := NewApi(storage, ":"+port)
+	api := NewApi(storage, ":"+port, channel)
 	api.Run()
 }

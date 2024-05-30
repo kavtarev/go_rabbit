@@ -5,17 +5,21 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Api struct {
 	storage Storage
 	address string
+	channel *amqp.Channel
 }
 
-func NewApi(storage Storage, address string) *Api {
+func NewApi(storage Storage, address string, channel *amqp.Channel) *Api {
 	return &Api{
 		storage: storage,
 		address: address,
+		channel: channel,
 	}
 }
 
@@ -39,6 +43,8 @@ func (api *Api) Run() {
 	server.HandleFunc("/me", JWTAccess(MapHandlers(api.Me), api.storage))
 	server.HandleFunc("/user", JWTAccess(MapHandlers(api.FindUserById), api.storage))
 	server.HandleFunc("/users", JWTAccess(MapHandlers(api.ListUsers), api.storage))
+
+	server.HandleFunc("/send-rabbit", MapHandlers(api.SendToRabbit))
 
 	http.ListenAndServe(api.address, server)
 }
@@ -174,5 +180,23 @@ func (api *Api) ListUsers(w http.ResponseWriter, req *http.Request) error {
 
 	responseAsJson(w, http.StatusOK, result)
 
+	return nil
+}
+
+func (api *Api) SendToRabbit(w http.ResponseWriter, req *http.Request) error {
+	fmt.Println("in send-rabbit")
+	err := api.channel.Publish(
+		"",
+		default_queue,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        []byte(`{"go_message": "some"}`)},
+	)
+
+	if err != nil {
+		fmt.Println("error publishing to channel/queue", err)
+	}
 	return nil
 }

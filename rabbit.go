@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -35,24 +36,46 @@ func NewChannel() *amqp.Channel {
 	return channel
 }
 
-func Receiver() {
+func Receiver(index int) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
 	if err != nil {
 		fmt.Println("error connected to rabbit receiver")
 	}
+	defer conn.Close()
 
 	channel, err := conn.Channel()
 	if err != nil {
 		fmt.Println("error get channel receiver")
 	}
+	defer channel.Close()
 
 	ch, err := channel.Consume(default_queue, "", false, false, false, false, nil)
 	if err != nil {
 		fmt.Println("error cant consume receiver")
 	}
 
-	fmt.Println("in goroutine")
-	for msg := range ch {
-		fmt.Println(msg.Body)
+	fmt.Printf("in goroutine %d\n", index)
+	fin := make(chan struct{})
+
+	go func() {
+		if index == 2 {
+			time.Sleep(time.Duration(10) * time.Second)
+			fin <- struct{}{}
+		}
+	}()
+
+	for {
+		select {
+		case msg := <-ch:
+			time.Sleep(time.Duration(index) * time.Second)
+			fmt.Printf("receive in %d %v\n", index, string(msg.Body))
+			if index == 1 {
+				msg.Ack(false)
+				fmt.Printf("ack in %d\n", index)
+			}
+		case <-fin:
+			fmt.Printf("in channel %d, should close", index)
+			return
+		}
 	}
 }

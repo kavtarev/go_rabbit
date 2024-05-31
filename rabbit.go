@@ -49,6 +49,15 @@ func Receiver(index int) {
 	}
 	defer channel.Close()
 
+	err = channel.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	if err != nil {
+		fmt.Println("error Qos receiver")
+	}
+
 	ch, err := channel.Consume(default_queue, "", false, false, false, false, nil)
 	if err != nil {
 		fmt.Println("error cant consume receiver")
@@ -69,10 +78,10 @@ func Receiver(index int) {
 		case msg := <-ch:
 			time.Sleep(time.Duration(index) * time.Second)
 			fmt.Printf("receive in %d %v\n", index, string(msg.Body))
-			if index == 1 {
-				msg.Ack(false)
-				fmt.Printf("ack in %d\n", index)
-			}
+			//if index == 1 {
+			msg.Ack(false)
+			// 	fmt.Printf("ack in %d\n", index)
+			// }
 		case <-fin:
 			fmt.Printf("in channel %d, should close", index)
 			return

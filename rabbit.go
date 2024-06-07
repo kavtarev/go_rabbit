@@ -95,11 +95,13 @@ func ReceiverWithExchange() {
 	if err != nil {
 		panic(err)
 	}
+	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
 		panic(err)
 	}
+	defer ch.Close()
 	// fanout разветвление
 	err = ch.ExchangeDeclare(exchange_uniq, "fanout", false, false, false, false, nil)
 	if err != nil {

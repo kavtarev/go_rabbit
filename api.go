@@ -185,9 +185,19 @@ func (api *Api) ListUsers(w http.ResponseWriter, req *http.Request) error {
 
 func (api *Api) SendToRabbit(w http.ResponseWriter, req *http.Request) error {
 	fmt.Println("in send-rabbit")
+	// err := api.channel.Publish(
+	// 	"",
+	// 	default_queue,
+	// 	false,
+	// 	false,
+	// 	amqp.Publishing{
+	// 		ContentType: "application/json",
+	// 		Body:        []byte(`{"go_message": "some"}`)},
+	// )
+
 	err := api.channel.Publish(
+		exchange_uniq,
 		"",
-		default_queue,
 		false,
 		false,
 		amqp.Publishing{

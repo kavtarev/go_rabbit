@@ -13,7 +13,9 @@ func main() {
 		log.Fatal("no port env set")
 	}
 	api := NewApi(storage, ":"+port, channel)
-	go Receiver(1)
-	go Receiver(2)
+	// go Receiver(1)
+	// go Receiver(2)
+	go ReceiverWithExchange()
+	go ReceiverWithExchange()
 	api.Run()
 }

@@ -10,6 +10,7 @@ import (
 const (
 	default_exchange = "default_rabbit_exchange"
 	default_queue    = "default_queue"
+	exchange_uniq    = "exchange_uniq"
 )
 
 func NewChannel() *amqp.Channel {
@@ -87,4 +88,41 @@ func Receiver(index int) {
 			return
 		}
 	}
+}
+
+func ReceiverWithExchange() {
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
+	if err != nil {
+		panic(err)
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		panic(err)
+	}
+	// fanout разветвление
+	err = ch.ExchangeDeclare(exchange_uniq, "fanout", false, false, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	q, err := ch.QueueDeclare("", false, false, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ch.QueueBind(q.Name, "", exchange_uniq, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	msg, err := ch.Consume(q.Name, "", false, false, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	for s := range msg {
+		fmt.Println(string(s.Body))
+	}
+
 }

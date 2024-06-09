@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func main() {
+func main23() {
 	storage := NewPostgresStore()
 	channel := NewChannel()
 	port := os.Getenv("PORT")
